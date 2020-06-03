@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <h1 id="h1"></h1>
+    <button id="add">+</button>
+    <button id="shortened">-</button>
+  </body>
+
+  <script>
+    // 创建仓库
+    function createStore(reducer) {
+      let currData;
+      let listeners = [];
+      const getState = () => currData;
+      const dispatch = (action) => {
+        currData = reducer(currData, action);
+        listeners.forEach((fn) => fn());
+      };
+      const subscribe = (listener) => {
+        listeners.push(listener);
+        return function () {
+          listeners = listeners.filter((fn) => fn !== listener);
+        };
+      };
+      dispatch({ type: '@@_REDUX' });
+      return {
+        getState,
+        dispatch,
+        subscribe,
+      };
+    }
+
+    let h1 = document.getElementById('h1');
+    let addBtn = document.getElementById('add');
+    let shortenedBtn = document.getElementById('shortened');
+    // 创建type
+    const ADD = 'ADD';
+    const SHORTENED = 'SHORTENED';
+    // 创建reucer
+    function reducer(state = { num: 0 }, action) {
+      switch (action.type) {
+        case ADD:
+          return { num: state.num + 1 };
+        case SHORTENED:
+          return { num: state.num - 1 };
+        default:
+          return state;
+      }
+    }
+    // 创建store 仓库
+    let store = createStore(reducer);
+    // 渲染视图
+    function render() {
+      h1.innerHTML = store.getState().num;
+    }
+    render();
+    // 监听数据
+    store.subscribe(render);
+    // 添加事件
+    addBtn.addEventListener('click', () => store.dispatch({ type: ADD }));
+    shortenedBtn.addEventListener('click', () =>
+      store.dispatch({ type: SHORTENED }),
+    );
+  </script>
+</html>
